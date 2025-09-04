@@ -29,20 +29,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
+  // Stable encryption state based on frequency
+  let currentEncryptionState = {
+    isEncrypted: false,
+    encryptionType: undefined as string | undefined,
+    lastFrequencyCheck: 146.52
+  };
+  
   // Simulate real-time signal data
   function generateSignalData(): SignalData {
-    const hasEncryption = Math.random() > 0.7; // 30% chance of encrypted signal
+    const currentFreq = 146.52 + (Math.random() - 0.5) * 0.04;
     const encryptionTypes = ['AES', 'P25', 'DMR', 'TETRA', 'DES'];
     
+    // Only update encryption status if frequency changed significantly (more than 0.01 MHz)
+    if (Math.abs(currentFreq - currentEncryptionState.lastFrequencyCheck) > 0.01) {
+      currentEncryptionState.lastFrequencyCheck = currentFreq;
+      // Government/military frequencies are more likely to be encrypted
+      const isGovFreq = currentFreq > 400 || (currentFreq > 800 && currentFreq < 900);
+      currentEncryptionState.isEncrypted = isGovFreq ? Math.random() > 0.3 : Math.random() > 0.8;
+      currentEncryptionState.encryptionType = currentEncryptionState.isEncrypted ? 
+        encryptionTypes[Math.floor(Math.random() * encryptionTypes.length)] : undefined;
+    }
+    
     return {
-      frequency: 146.52 + (Math.random() - 0.5) * 0.04, // ±20kHz around 146.52 MHz
+      frequency: currentFreq,
       strength: -100 + Math.random() * 60, // -100 to -40 dBm
       timestamp: Date.now(),
       noise: -110 + Math.random() * 20, // -110 to -90 dBm noise floor
-      isEncrypted: hasEncryption,
-      encryptionType: hasEncryption ? encryptionTypes[Math.floor(Math.random() * encryptionTypes.length)] : undefined,
-      isDecrypted: hasEncryption ? Math.random() > 0.3 : true, // 70% success rate for decryption
-      audioClarity: hasEncryption ? (Math.random() > 0.3 ? 85 + Math.random() * 15 : 20 + Math.random() * 30) : 90 + Math.random() * 10,
+      isEncrypted: currentEncryptionState.isEncrypted,
+      encryptionType: currentEncryptionState.encryptionType,
+      isDecrypted: currentEncryptionState.isEncrypted ? Math.random() > 0.3 : true, // 70% success rate for decryption
+      audioClarity: currentEncryptionState.isEncrypted ? (Math.random() > 0.3 ? 85 + Math.random() * 15 : 20 + Math.random() * 30) : 90 + Math.random() * 10,
     };
   }
   
