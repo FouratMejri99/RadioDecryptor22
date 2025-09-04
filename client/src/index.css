@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(216, 12%, 8%);
+  --foreground: hsl(210, 11%, 85%);
+  --card: hsl(216, 12%, 12%);
+  --card-foreground: hsl(210, 11%, 85%);
+  --popover: hsl(216, 12%, 12%);
+  --popover-foreground: hsl(210, 11%, 85%);
+  --primary: hsl(200, 98%, 41%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(215, 10%, 18%);
+  --secondary-foreground: hsl(210, 11%, 75%);
+  --muted: hsl(216, 9%, 20%);
+  --muted-foreground: hsl(215, 9%, 55%);
+  --accent: hsl(167, 70%, 41%);
+  --accent-foreground: hsl(0, 0%, 100%);
+  --destructive: hsl(0, 75%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(215, 12%, 25%);
+  --input: hsl(216, 9%, 20%);
+  --ring: hsl(167, 70%, 41%);
+  --chart-1: hsl(167, 70%, 41%);
+  --chart-2: hsl(200, 98%, 41%);
+  --chart-3: hsl(45, 93%, 47%);
+  --chart-4: hsl(280, 65%, 60%);
+  --chart-5: hsl(15, 75%, 60%);
+  --sidebar: hsl(216, 12%, 12%);
+  --sidebar-foreground: hsl(210, 11%, 85%);
+  --sidebar-primary: hsl(200, 98%, 41%);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
+  --sidebar-accent: hsl(167, 70%, 41%);
+  --sidebar-accent-foreground: hsl(0, 0%, 100%);
+  --sidebar-border: hsl(215, 12%, 25%);
+  --sidebar-ring: hsl(167, 70%, 41%);
+  --font-sans: 'Inter', ui-sans-serif, system-ui;
+  --font-serif: Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --radius: 8px;
+}
+
+.signal-bar {
+  background: linear-gradient(to top, 
+    hsl(167, 70%, 41%) 0%, 
+    hsl(167, 70%, 41%) 70%, 
+    hsl(45, 93%, 47%) 85%, 
+    hsl(0, 75%, 60%) 100%);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.waterfall-row {
+  background: linear-gradient(to right,
+    hsl(216, 12%, 8%) 0%,
+    hsl(167, 70%, 20%) 20%,
+    hsl(167, 70%, 41%) 40%,
+    hsl(45, 93%, 30%) 60%,
+    hsl(200, 98%, 30%) 80%,
+    hsl(216, 12%, 8%) 100%);
+  height: 2px;
+  margin-bottom: 1px;
+  opacity: 0.8;
+}
+
+.frequency-display {
+  font-family: var(--font-mono);
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 10px rgba(0, 212, 170, 0.3);
+}
+
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.scanning-indicator {
+  background: linear-gradient(45deg, 
+    transparent 25%, 
+    rgba(0, 212, 170, 0.1) 25%, 
+    rgba(0, 212, 170, 0.1) 50%, 
+    transparent 50%, 
+    transparent 75%, 
+    rgba(0, 212, 170, 0.1) 75%);
+  background-size: 20px 20px;
+  animation: scanning 1s linear infinite;
+}
+
+@keyframes scanning {
+  0% { background-position: 0 0; }
+  100% { background-position: 20px 20px; }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+}
