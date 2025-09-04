@@ -111,9 +111,7 @@ export default function Home() {
               encryptionType={currentSignal?.encryptionType}
               isDecrypted={currentSignal?.isDecrypted || false}
               decryptionEnabled={settings?.decryptionEnabled || true}
-              autoDecrypt={settings?.autoDecrypt || true}
               onToggleDecryption={() => handleSettingsChange({ decryptionEnabled: !settings?.decryptionEnabled })}
-              onToggleAutoDecrypt={() => handleSettingsChange({ autoDecrypt: !settings?.autoDecrypt })}
               onManualDecrypt={() => {
                 telegram.hapticFeedback('success');
                 // Decryption handled by simulation

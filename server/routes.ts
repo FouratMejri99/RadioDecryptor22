@@ -172,7 +172,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isScanning: z.boolean().optional(),
         isMuted: z.boolean().optional(),
         decryptionEnabled: z.boolean().optional(),
-        autoDecrypt: z.boolean().optional(),
       }).parse(req.body);
       
       const settings = await storage.updateScannerSettings(userId, settingsData);

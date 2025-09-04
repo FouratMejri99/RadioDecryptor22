@@ -11,9 +11,7 @@ interface DecryptionControlsProps {
   encryptionType?: string;
   isDecrypted: boolean;
   decryptionEnabled: boolean;
-  autoDecrypt: boolean;
   onToggleDecryption: () => void;
-  onToggleAutoDecrypt: () => void;
   onManualDecrypt: () => void;
 }
 
@@ -38,9 +36,7 @@ export function DecryptionControls({
   encryptionType,
   isDecrypted,
   decryptionEnabled,
-  autoDecrypt,
   onToggleDecryption,
-  onToggleAutoDecrypt,
   onManualDecrypt,
 }: DecryptionControlsProps) {
   const [decryptionProgress, setDecryptionProgress] = useState(isDecrypted ? 100 : 0);
@@ -122,15 +118,6 @@ export function DecryptionControls({
           {/* Controls */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm">Auto Decrypt</span>
-              <Switch 
-                checked={autoDecrypt}
-                onCheckedChange={onToggleAutoDecrypt}
-                data-testid="auto-decrypt-toggle"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
               <span className="text-sm">Decryption Engine</span>
               <Switch 
                 checked={decryptionEnabled}
@@ -139,7 +126,7 @@ export function DecryptionControls({
               />
             </div>
 
-            {decryptionEnabled && !autoDecrypt && (
+            {decryptionEnabled && (
               <Button 
                 onClick={handleManualDecrypt}
                 disabled={isDecrypting || isDecrypted}
