@@ -13,7 +13,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { telegram } from "@/lib/telegram";
 import { useEffect, useState } from "react";
-import { type ScannerSettings } from "@shared/schema";
+import { type ScannerSettings, type InsertScannerSettings } from "@shared/schema";
 
 export default function Home() {
   const { currentSignal, isConnected, getSignalStrength } = useSignalData();
@@ -28,7 +28,7 @@ export default function Home() {
 
   // Update scanner settings mutation
   const updateSettingsMutation = useMutation({
-    mutationFn: async (updates: Partial<ScannerSettings>) => {
+    mutationFn: async (updates: Partial<InsertScannerSettings>) => {
       const response = await apiRequest('PATCH', `/api/scanner-settings/${userId}`, updates);
       return response.json();
     },
@@ -52,7 +52,7 @@ export default function Home() {
     telegram.hapticFeedback('selection');
   };
 
-  const handleSettingsChange = (updates: Partial<ScannerSettings>) => {
+  const handleSettingsChange = (updates: Partial<InsertScannerSettings>) => {
     updateSettingsMutation.mutate(updates);
   };
 

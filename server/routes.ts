@@ -164,15 +164,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/scanner-settings/:userId", async (req, res) => {
     try {
       const { userId } = req.params;
-      const settingsData = z.object({
-        volume: z.number().min(0).max(100).optional(),
-        squelch: z.number().min(0).max(100).optional(),
-        currentFrequency: z.number().positive().optional(),
-        currentModulation: z.enum(["AM", "FM", "USB", "LSB", "CW"]).optional(),
-        isScanning: z.boolean().optional(),
-        isMuted: z.boolean().optional(),
-        decryptionEnabled: z.boolean().optional(),
-      }).parse(req.body);
+      const settingsSchema = insertScannerSettingsSchema.partial().omit({ userId: true });
+      const settingsData = settingsSchema.parse(req.body);
       
       const settings = await storage.updateScannerSettings(userId, settingsData);
       res.json(settings);
