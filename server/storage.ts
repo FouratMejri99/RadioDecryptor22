@@ -143,6 +143,7 @@ export class MemStorage implements IStorage {
     const frequency: Frequency = {
       ...insertFrequency,
       id,
+      modulation: insertFrequency.modulation || "FM",
       createdAt: new Date(),
     };
     this.frequencies.set(id, frequency);
@@ -158,6 +159,7 @@ export class MemStorage implements IStorage {
     const bookmark: Bookmark = {
       ...insertBookmark,
       id,
+      modulation: insertBookmark.modulation || "FM",
       createdAt: new Date(),
     };
     this.bookmarks.set(id, bookmark);
@@ -195,6 +197,8 @@ export class MemStorage implements IStorage {
         isScanning: false,
         isMuted: false,
         decryptionEnabled: true,
+        isBroadcasting: false,
+        broadcastTitle: "Live Scanner Feed",
         ...settings,
         updatedAt: new Date(),
       };

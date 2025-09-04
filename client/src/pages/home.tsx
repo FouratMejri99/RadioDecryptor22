@@ -7,7 +7,10 @@ import { ManualTuning } from "@/components/manual-tuning";
 import { AudioControls } from "@/components/audio-controls";
 import { BookmarksSection } from "@/components/bookmarks-section";
 import { DecryptionControls } from "@/components/decryption-controls";
+import { LiveBroadcasting } from "@/components/live-broadcasting";
 import { BottomNavigation } from "@/components/bottom-navigation";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useSignalData } from "@/hooks/use-signal-data";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -17,7 +20,7 @@ import { type ScannerSettings, type InsertScannerSettings } from "@shared/schema
 
 export default function Home() {
   const { currentSignal, isConnected, getSignalStrength } = useSignalData();
-  const [currentPage, setCurrentPage] = useState<'scan' | 'presets' | 'bookmarks' | 'settings'>('scan');
+  const [currentPage, setCurrentPage] = useState<'home' | 'presets' | 'bookmarks' | 'settings'>('home');
   const queryClient = useQueryClient();
   const userId = telegram.getUserId();
 
@@ -80,7 +83,7 @@ export default function Home() {
 
       {/* Main Content */}
       <div className="pb-20"> {/* Add bottom padding for fixed navigation */}
-        {currentPage === 'scan' && (
+        {currentPage === 'home' && (
           <>
             {/* Signal Strength Visualization */}
             <SignalDisplay />
@@ -94,6 +97,27 @@ export default function Home() {
               currentModulation={currentModulation}
               onFrequencyChange={handleFrequencyChange}
             />
+
+            {/* Scanner Controls */}
+            <div className="px-4 pb-4">
+              <div className="bg-card rounded-lg p-4 border border-border">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium">Scanner Control</h3>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={isScanning ? "default" : "secondary"}>
+                      {isScanning ? "SCANNING" : "STANDBY"}
+                    </Badge>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => handleSettingsChange({ isScanning: !isScanning })}
+                  className={`w-full ${isScanning ? 'bg-destructive hover:bg-destructive/90' : 'bg-accent hover:bg-accent/90'}`}
+                  data-testid="toggle-scanning"
+                >
+                  {isScanning ? 'Stop Scanning' : 'Start Scanning'}
+                </Button>
+              </div>
+            </div>
 
             {/* Audio Controls */}
             <AudioControls 
@@ -116,6 +140,14 @@ export default function Home() {
                 telegram.hapticFeedback('success');
                 // Decryption handled by simulation
               }}
+            />
+
+            {/* Live Broadcasting Controls */}
+            <LiveBroadcasting 
+              isBroadcasting={settings?.isBroadcasting || false}
+              broadcastTitle={settings?.broadcastTitle || "Live Scanner Feed"}
+              onToggleBroadcast={() => handleSettingsChange({ isBroadcasting: !settings?.isBroadcasting })}
+              onUpdateTitle={(title) => handleSettingsChange({ broadcastTitle: title })}
             />
 
           </>

@@ -1,8 +1,8 @@
-import { Search, List, Bookmark, Settings, Play, Pause } from "lucide-react";
+import { Home, List, Bookmark, Settings, Play, Pause } from "lucide-react";
 
 interface BottomNavigationProps {
-  currentPage: 'scan' | 'presets' | 'bookmarks' | 'settings';
-  onPageChange: (page: 'scan' | 'presets' | 'bookmarks' | 'settings') => void;
+  currentPage: 'home' | 'presets' | 'bookmarks' | 'settings';
+  onPageChange: (page: 'home' | 'presets' | 'bookmarks' | 'settings') => void;
   isScanning: boolean;
   onToggleScan: () => void;
 }
@@ -14,7 +14,7 @@ export function BottomNavigation({
   onToggleScan 
 }: BottomNavigationProps) {
   const navItems = [
-    { id: 'scan' as const, icon: isScanning ? Pause : Play, label: isScanning ? 'Pause' : 'Scan', action: onToggleScan },
+    { id: 'home' as const, icon: Home, label: 'Home', action: () => onPageChange('home') },
     { id: 'presets' as const, icon: List, label: 'Presets', action: () => onPageChange('presets') },
     { id: 'bookmarks' as const, icon: Bookmark, label: 'Saved', action: () => onPageChange('bookmarks') },
     { id: 'settings' as const, icon: Settings, label: 'Settings', action: () => onPageChange('settings') },
@@ -24,7 +24,7 @@ export function BottomNavigation({
     <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border">
       <div className="flex items-center justify-around py-3">
         {navItems.map((item) => {
-          const isActive = item.id === 'scan' ? isScanning : currentPage === item.id;
+          const isActive = currentPage === item.id;
           const IconComponent = item.icon;
           
           return (

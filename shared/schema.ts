@@ -38,6 +38,8 @@ export const scannerSettings = pgTable("scanner_settings", {
   isScanning: boolean("is_scanning").notNull().default(false),
   isMuted: boolean("is_muted").notNull().default(false),
   decryptionEnabled: boolean("decryption_enabled").notNull().default(true),
+  isBroadcasting: boolean("is_broadcasting").notNull().default(false),
+  broadcastTitle: text("broadcast_title").default("Live Scanner Feed"),
   updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
 });
 
