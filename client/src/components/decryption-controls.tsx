@@ -62,27 +62,13 @@ export function DecryptionControls({
     }, 100);
   };
 
-  if (!isEncrypted) {
-    return (
-      <div className="px-4 pb-4">
-        <div className="bg-card rounded-lg p-4 border border-border">
-          <div className="flex items-center gap-2 mb-3">
-            <Unlock className="w-4 h-4 text-accent" />
-            <h3 className="text-sm font-medium">Signal Status</h3>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-accent">
-              Clear Signal
-            </Badge>
-            <span className="text-xs text-muted-foreground">No encryption detected</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
-  const IconComponent = encryptionIcons[encryptionType as keyof typeof encryptionIcons] || Lock;
-  const colorClass = encryptionColors[encryptionType as keyof typeof encryptionColors] || 'text-muted-foreground';
+  const IconComponent = isEncrypted 
+    ? (encryptionIcons[encryptionType as keyof typeof encryptionIcons] || Lock)
+    : Unlock;
+  const colorClass = isEncrypted 
+    ? (encryptionColors[encryptionType as keyof typeof encryptionColors] || 'text-muted-foreground')
+    : 'text-accent';
 
   return (
     <div className="px-4 pb-4">
@@ -92,8 +78,8 @@ export function DecryptionControls({
             <IconComponent className={`w-4 h-4 ${colorClass}`} />
             <h3 className="text-sm font-medium">Decryption Control</h3>
           </div>
-          <Badge variant={isDecrypted ? "default" : "destructive"}>
-            {isDecrypted ? 'DECRYPTED' : 'ENCRYPTED'}
+          <Badge variant={!isEncrypted ? "secondary" : isDecrypted ? "default" : "destructive"}>
+            {!isEncrypted ? 'CLEAR SIGNAL' : isDecrypted ? 'DECRYPTED' : 'ENCRYPTED'}
           </Badge>
         </div>
 
@@ -102,7 +88,7 @@ export function DecryptionControls({
           <div className="flex items-center justify-between">
             <span className="text-sm">Encryption Type</span>
             <span className={`text-sm font-mono ${colorClass}`}>
-              {encryptionType || 'Unknown'}
+              {isEncrypted ? (encryptionType || 'Unknown') : 'None'}
             </span>
           </div>
 
@@ -126,7 +112,7 @@ export function DecryptionControls({
               />
             </div>
 
-            {decryptionEnabled && (
+            {decryptionEnabled && isEncrypted && (
               <Button 
                 onClick={handleManualDecrypt}
                 disabled={isDecrypting || isDecrypted}
@@ -136,11 +122,24 @@ export function DecryptionControls({
                 {isDecrypting ? 'Decrypting...' : isDecrypted ? 'Signal Decrypted' : 'Start Decryption'}
               </Button>
             )}
+            
+            {!isEncrypted && (
+              <Button 
+                disabled
+                className="w-full"
+                variant="secondary"
+                data-testid="no-encryption-button"
+              >
+                No Encryption Detected
+              </Button>
+            )}
           </div>
 
           {/* Status */}
           <div className="text-xs text-muted-foreground">
-            {isDecrypted ? (
+            {!isEncrypted ? (
+              <span className="text-accent">✓ Clear audio signal - no decryption needed</span>
+            ) : isDecrypted ? (
               <span className="text-accent">✓ Audio signal successfully decrypted</span>
             ) : decryptionEnabled ? (
               <span>Decryption engine ready</span>
