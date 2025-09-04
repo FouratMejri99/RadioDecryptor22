@@ -11,6 +11,10 @@ export const frequencies = pgTable("frequencies", {
   category: text("category").notNull(), // aviation, amateur, emergency, marine, etc.
   modulation: text("modulation").notNull().default("FM"), // AM, FM, USB, LSB, CW
   isActive: boolean("is_active").notNull().default(true),
+  isEncrypted: boolean("is_encrypted").notNull().default(false),
+  encryptionType: text("encryption_type"), // AES, DES, P25, DMR, TETRA, etc.
+  isDecrypted: boolean("is_decrypted").notNull().default(false),
+  signalStrength: real("signal_strength").default(-80),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 
@@ -33,6 +37,8 @@ export const scannerSettings = pgTable("scanner_settings", {
   currentModulation: text("current_modulation").notNull().default("FM"),
   isScanning: boolean("is_scanning").notNull().default(false),
   isMuted: boolean("is_muted").notNull().default(false),
+  decryptionEnabled: boolean("decryption_enabled").notNull().default(true),
+  autoDecrypt: boolean("auto_decrypt").notNull().default(true),
   updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
 });
 
@@ -66,6 +72,10 @@ export interface SignalData {
   strength: number; // in dBm
   timestamp: number;
   noise: number;
+  isEncrypted: boolean;
+  encryptionType?: string;
+  isDecrypted: boolean;
+  audioClarity: number; // 0-100 percentage
 }
 
 export interface WaterfallRow {

@@ -31,11 +31,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Simulate real-time signal data
   function generateSignalData(): SignalData {
+    const hasEncryption = Math.random() > 0.7; // 30% chance of encrypted signal
+    const encryptionTypes = ['AES', 'P25', 'DMR', 'TETRA', 'DES'];
+    
     return {
       frequency: 146.52 + (Math.random() - 0.5) * 0.04, // ±20kHz around 146.52 MHz
       strength: -100 + Math.random() * 60, // -100 to -40 dBm
       timestamp: Date.now(),
       noise: -110 + Math.random() * 20, // -110 to -90 dBm noise floor
+      isEncrypted: hasEncryption,
+      encryptionType: hasEncryption ? encryptionTypes[Math.floor(Math.random() * encryptionTypes.length)] : undefined,
+      isDecrypted: hasEncryption ? Math.random() > 0.3 : true, // 70% success rate for decryption
+      audioClarity: hasEncryption ? (Math.random() > 0.3 ? 85 + Math.random() * 15 : 20 + Math.random() * 30) : 90 + Math.random() * 10,
     };
   }
   
@@ -164,6 +171,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentModulation: z.enum(["AM", "FM", "USB", "LSB", "CW"]).optional(),
         isScanning: z.boolean().optional(),
         isMuted: z.boolean().optional(),
+        decryptionEnabled: z.boolean().optional(),
+        autoDecrypt: z.boolean().optional(),
       }).parse(req.body);
       
       const settings = await storage.updateScannerSettings(userId, settingsData);

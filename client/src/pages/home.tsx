@@ -6,7 +6,7 @@ import { FrequencyPresets } from "@/components/frequency-presets";
 import { ManualTuning } from "@/components/manual-tuning";
 import { AudioControls } from "@/components/audio-controls";
 import { BookmarksSection } from "@/components/bookmarks-section";
-import { LegalNotice } from "@/components/legal-notice";
+import { DecryptionControls } from "@/components/decryption-controls";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { useSignalData } from "@/hooks/use-signal-data";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -105,8 +105,21 @@ export default function Home() {
               onToggleMute={() => handleSettingsChange({ isMuted: !settings?.isMuted })}
             />
 
-            {/* Legal Notice */}
-            <LegalNotice />
+            {/* Decryption Controls */}
+            <DecryptionControls 
+              isEncrypted={currentSignal?.isEncrypted || false}
+              encryptionType={currentSignal?.encryptionType}
+              isDecrypted={currentSignal?.isDecrypted || false}
+              decryptionEnabled={settings?.decryptionEnabled || true}
+              autoDecrypt={settings?.autoDecrypt || true}
+              onToggleDecryption={() => handleSettingsChange({ decryptionEnabled: !settings?.decryptionEnabled })}
+              onToggleAutoDecrypt={() => handleSettingsChange({ autoDecrypt: !settings?.autoDecrypt })}
+              onManualDecrypt={() => {
+                telegram.hapticFeedback('success');
+                // Decryption handled by simulation
+              }}
+            />
+
           </>
         )}
 

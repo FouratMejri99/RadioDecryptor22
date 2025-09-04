@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { type Frequency } from "@shared/schema";
-import { Plane, Radio, AlertTriangle, Ship, Clock, Shield } from "lucide-react";
+import { Plane, Radio, AlertTriangle, Ship, Clock, Shield, Eye, Zap } from "lucide-react";
 
 interface FrequencyPresetsProps {
   onFrequencySelect: (frequency: number, modulation: string) => void;
@@ -13,6 +13,8 @@ const categoryIcons = {
   marine: Ship,
   business: Clock,
   public_safety: Shield,
+  government: Eye,
+  military: Zap,
 };
 
 const categoryColors = {
@@ -22,6 +24,8 @@ const categoryColors = {
   marine: 'text-primary',
   business: 'text-chart-3',
   public_safety: 'text-chart-5',
+  government: 'text-red-500',
+  military: 'text-orange-500',
 };
 
 export function FrequencyPresets({ onFrequencySelect }: FrequencyPresetsProps) {
@@ -73,8 +77,16 @@ export function FrequencyPresets({ onFrequencySelect }: FrequencyPresetsProps) {
                 </span>
                 <IconComponent className="w-3 h-3 text-muted-foreground" />
               </div>
-              <div className="text-sm font-mono text-foreground">
-                {preset.frequency.toFixed(3)}
+              <div className="flex items-center gap-2">
+                <div className="text-sm font-mono text-foreground">
+                  {preset.frequency.toFixed(3)}
+                </div>
+                {preset.isEncrypted && (
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-destructive rounded-full"></div>
+                    <span className="text-xs text-destructive font-medium">ENC</span>
+                  </div>
+                )}
               </div>
               <div className="text-xs text-muted-foreground truncate">
                 {preset.name}
