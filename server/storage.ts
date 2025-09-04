@@ -194,6 +194,7 @@ export class MemStorage implements IStorage {
         currentModulation: "FM",
         isScanning: false,
         isMuted: false,
+        decryptionEnabled: true,
         ...settings,
         updatedAt: new Date(),
       };
