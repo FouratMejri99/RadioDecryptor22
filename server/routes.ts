@@ -29,38 +29,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
-  // Stable encryption state based on frequency
-  let currentEncryptionState = {
+  // Enhanced signal simulation with proper frequency tracking
+  let currentSignalState = {
+    frequency: 146.52,
     isEncrypted: false,
     encryptionType: undefined as string | undefined,
-    lastFrequencyCheck: 146.52
+    isDecrypted: false,
+    signalStrength: -60,
+    lastUpdate: Date.now()
   };
   
-  // Simulate real-time signal data
+  // Track user's current tuned frequency from scanner settings
+  let userTunedFrequency = 146.52;
+  
+  // Simulate real-time signal data based on user's tuned frequency
   function generateSignalData(): SignalData {
-    const currentFreq = 146.52 + (Math.random() - 0.5) * 0.04;
     const encryptionTypes = ['AES', 'P25', 'DMR', 'TETRA', 'DES'];
     
-    // Only update encryption status if frequency changed significantly (more than 0.01 MHz)
-    if (Math.abs(currentFreq - currentEncryptionState.lastFrequencyCheck) > 0.01) {
-      currentEncryptionState.lastFrequencyCheck = currentFreq;
-      // Government/military frequencies are more likely to be encrypted
-      const isGovFreq = currentFreq > 400 || (currentFreq > 800 && currentFreq < 900);
-      currentEncryptionState.isEncrypted = isGovFreq ? Math.random() > 0.3 : Math.random() > 0.8;
-      currentEncryptionState.encryptionType = currentEncryptionState.isEncrypted ? 
+    // Use the user's tuned frequency as base, with small drift
+    const currentFreq = userTunedFrequency + (Math.random() - 0.5) * 0.002; // Very small drift
+    
+    // Update signal characteristics if frequency changed significantly
+    if (Math.abs(currentFreq - currentSignalState.frequency) > 0.001 || 
+        Date.now() - currentSignalState.lastUpdate > 5000) {
+      
+      currentSignalState.frequency = currentFreq;
+      currentSignalState.lastUpdate = Date.now();
+      
+      // Determine encryption based on frequency bands
+      const isGovFreq = (currentFreq >= 450 && currentFreq <= 470) || // UHF Government
+                        (currentFreq >= 764 && currentFreq <= 869) || // 700/800 MHz Public Safety
+                        (currentFreq >= 896 && currentFreq <= 960);   // Military/Government
+      
+      const isEmergencyFreq = (currentFreq >= 453 && currentFreq <= 458) || // Emergency Services
+                              (currentFreq >= 851 && currentFreq <= 869);   // Public Safety
+      
+      // Higher chance of encryption for government/emergency frequencies
+      currentSignalState.isEncrypted = isGovFreq ? Math.random() > 0.2 : 
+                                       isEmergencyFreq ? Math.random() > 0.4 : 
+                                       Math.random() > 0.8;
+      
+      currentSignalState.encryptionType = currentSignalState.isEncrypted ? 
         encryptionTypes[Math.floor(Math.random() * encryptionTypes.length)] : undefined;
+      
+      // Reset decryption status when encryption changes
+      currentSignalState.isDecrypted = !currentSignalState.isEncrypted;
+      
+      // Signal strength varies by frequency band
+      const baseStrength = isGovFreq ? -50 : isEmergencyFreq ? -45 : -60;
+      currentSignalState.signalStrength = baseStrength + (Math.random() - 0.5) * 20;
     }
+    
+    // Add some natural signal variation
+    const strengthVariation = (Math.random() - 0.5) * 10;
+    const currentStrength = currentSignalState.signalStrength + strengthVariation;
     
     return {
       frequency: currentFreq,
-      strength: -100 + Math.random() * 60, // -100 to -40 dBm
+      strength: Math.max(-120, Math.min(-20, currentStrength)), // Clamp to realistic range
       timestamp: Date.now(),
-      noise: -110 + Math.random() * 20, // -110 to -90 dBm noise floor
-      isEncrypted: currentEncryptionState.isEncrypted,
-      encryptionType: currentEncryptionState.encryptionType,
-      isDecrypted: currentEncryptionState.isEncrypted ? Math.random() > 0.3 : true, // 70% success rate for decryption
-      audioClarity: currentEncryptionState.isEncrypted ? (Math.random() > 0.3 ? 85 + Math.random() * 15 : 20 + Math.random() * 30) : 90 + Math.random() * 10,
+      noise: -110 + Math.random() * 15, // -110 to -95 dBm noise floor
+      isEncrypted: currentSignalState.isEncrypted,
+      encryptionType: currentSignalState.encryptionType,
+      isDecrypted: currentSignalState.isDecrypted,
+      audioClarity: currentSignalState.isDecrypted ? 
+        (85 + Math.random() * 15) : // Clear audio when decrypted
+        (currentSignalState.isEncrypted ? 15 + Math.random() * 25 : 90 + Math.random() * 10), // Poor audio when encrypted
     };
+  }
+  
+  // Function to update the tuned frequency from scanner settings
+  function updateTunedFrequency(frequency: number) {
+    userTunedFrequency = frequency;
+    // Force signal update on frequency change
+    currentSignalState.lastUpdate = 0;
   }
   
   function generateWaterfallRow(): WaterfallRow {
@@ -183,6 +225,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { userId } = req.params;
       const settingsSchema = insertScannerSettingsSchema.partial().omit({ userId: true });
       const settingsData = settingsSchema.parse(req.body);
+      
+      // Update tuned frequency for signal simulation
+      if (settingsData.currentFrequency) {
+        updateTunedFrequency(settingsData.currentFrequency);
+      }
       
       const settings = await storage.updateScannerSettings(userId, settingsData);
       res.json(settings);

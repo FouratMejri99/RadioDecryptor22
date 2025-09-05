@@ -33,6 +33,13 @@ export function LiveBroadcasting({
     }
     onToggleBroadcast();
   };
+  
+  const handleTitleChange = (newTitle: string) => {
+    setTitle(newTitle);
+    if (isBroadcasting) {
+      onUpdateTitle(newTitle);
+    }
+  };
 
   return (
     <div className="px-4 pb-4">
@@ -53,9 +60,8 @@ export function LiveBroadcasting({
             <label className="text-sm font-medium">Broadcast Title</label>
             <Input
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => handleTitleChange(e.target.value)}
               placeholder="Enter broadcast title..."
-              disabled={isBroadcasting}
               data-testid="broadcast-title-input"
             />
           </div>

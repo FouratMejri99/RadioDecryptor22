@@ -7,6 +7,7 @@ import { ManualTuning } from "@/components/manual-tuning";
 import { AudioControls } from "@/components/audio-controls";
 import { BookmarksSection } from "@/components/bookmarks-section";
 import { DecryptionControls } from "@/components/decryption-controls";
+import { DecryptionPanel } from "@/components/decryption-panel";
 import { LiveBroadcasting } from "@/components/live-broadcasting";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,29 @@ export default function Home() {
   const handleSettingsChange = (updates: Partial<InsertScannerSettings>) => {
     updateSettingsMutation.mutate(updates);
   };
+  
+  const handleRecordFrequency = (frequency: any) => {
+    // Start recording this frequency
+    console.log('Recording frequency:', frequency);
+    telegram.hapticFeedback('success');
+    // TODO: Implement actual recording functionality
+  };
+  
+  const handleBroadcastFrequency = (frequency: any) => {
+    // Start broadcasting this frequency
+    console.log('Broadcasting frequency:', frequency);
+    handleSettingsChange({ 
+      isBroadcasting: true,
+      currentFrequency: frequency.frequency,
+      currentModulation: frequency.modulation,
+      broadcastTitle: `🔴 Live: ${frequency.name} [${frequency.frequency.toFixed(3)} MHz]`
+    });
+    telegram.hapticFeedback('success');
+    // Show success message
+    setTimeout(() => {
+      console.log(`Now broadcasting ${frequency.name} at ${frequency.frequency.toFixed(3)} MHz`);
+    }, 500);
+  };
 
   const currentFrequency = settings?.currentFrequency || 146.52;
   const currentModulation = settings?.currentModulation || 'FM';
@@ -96,6 +120,8 @@ export default function Home() {
               currentFrequency={currentFrequency}
               currentModulation={currentModulation}
               onFrequencyChange={handleFrequencyChange}
+              onRecordFrequency={handleRecordFrequency}
+              onBroadcastFrequency={handleBroadcastFrequency}
             />
 
             {/* Scanner Controls */}
@@ -129,16 +155,15 @@ export default function Home() {
               onToggleMute={() => handleSettingsChange({ isMuted: !settings?.isMuted })}
             />
 
-            {/* Decryption Controls */}
-            <DecryptionControls 
-              isEncrypted={currentSignal?.isEncrypted || false}
-              encryptionType={currentSignal?.encryptionType}
-              isDecrypted={currentSignal?.isDecrypted || false}
-              decryptionEnabled={settings?.decryptionEnabled || true}
-              onToggleDecryption={() => handleSettingsChange({ decryptionEnabled: !settings?.decryptionEnabled })}
+            {/* Enhanced Decryption Panel */}
+            <DecryptionPanel 
+              currentSignal={currentSignal}
+              settings={settings}
+              onSettingsChange={handleSettingsChange}
               onManualDecrypt={() => {
                 telegram.hapticFeedback('success');
-                // Decryption handled by simulation
+                // Force signal update to show decrypted state
+                console.log('Decryption completed for frequency:', currentSignal?.frequency);
               }}
             />
 

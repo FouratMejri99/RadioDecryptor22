@@ -27,9 +27,11 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const wsUrl = `${protocol}//${window.location.host}/ws`;
       
+      console.log('Connecting to WebSocket:', wsUrl);
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {
+        console.log('WebSocket connected successfully');
         setIsConnected(true);
         setConnectionAttempts(0);
         onOpen?.();
@@ -44,7 +46,8 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
         }
       };
 
-      wsRef.current.onclose = () => {
+      wsRef.current.onclose = (event) => {
+        console.log('WebSocket closed:', event.code, event.reason);
         setIsConnected(false);
         onClose?.();
         
@@ -54,13 +57,14 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
         }
         
         reconnectTimeoutRef.current = setTimeout(() => {
+          console.log('Attempting WebSocket reconnection...');
           setConnectionAttempts(prev => prev + 1);
           connect();
         }, reconnectInterval);
       };
 
       wsRef.current.onerror = (error) => {
-        console.error("WebSocket error:", error);
+        console.error("WebSocket connection error:", error);
         onError?.(error);
       };
     } catch (error) {
