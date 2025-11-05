@@ -1,0 +1,564 @@
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RadioScan Pro - Telegram Mini App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        darkMode: 'class',
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    popover: {
+                        DEFAULT: "var(--popover)",
+                        foreground: "var(--popover-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                    chart: {
+                        "1": "var(--chart-1)",
+                        "2": "var(--chart-2)",
+                        "3": "var(--chart-3)",
+                        "4": "var(--chart-4)",
+                        "5": "var(--chart-5)",
+                    }
+                },
+                fontFamily: {
+                    sans: ["var(--font-sans)"],
+                    serif: ["var(--font-serif)"],
+                    mono: ["var(--font-mono)"],
+                }
+            },
+        }
+    };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --background: hsl(216 12% 8%);
+            --foreground: hsl(210 11% 85%);
+            --card: hsl(216 12% 12%);
+            --card-foreground: hsl(210 11% 85%);
+            --popover: hsl(216 12% 12%);
+            --popover-foreground: hsl(210 11% 85%);
+            --primary: hsl(200 98% 41%);
+            --primary-foreground: hsl(0 0% 100%);
+            --secondary: hsl(215 10% 18%);
+            --secondary-foreground: hsl(210 11% 75%);
+            --muted: hsl(216 9% 20%);
+            --muted-foreground: hsl(215 9% 55%);
+            --accent: hsl(167 70% 41%);
+            --accent-foreground: hsl(0 0% 100%);
+            --destructive: hsl(0 75% 60%);
+            --destructive-foreground: hsl(0 0% 100%);
+            --border: hsl(215 12% 25%);
+            --input: hsl(216 9% 20%);
+            --ring: hsl(167 70% 41%);
+            --chart-1: hsl(167 70% 41%);
+            --chart-2: hsl(200 98% 41%);
+            --chart-3: hsl(45 93% 47%);
+            --chart-4: hsl(280 65% 60%);
+            --chart-5: hsl(15 75% 60%);
+            --radius: 8px;
+            --font-sans: 'Inter', ui-sans-serif, system-ui;
+            --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+        }
+        
+        body {
+            font-family: var(--font-sans);
+            background: var(--background);
+            color: var(--foreground);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        .signal-bar {
+            background: linear-gradient(to top, 
+                hsl(167 70% 41%) 0%, 
+                hsl(167 70% 41%) 70%, 
+                hsl(45 93% 47%) 85%, 
+                hsl(0 75% 60%) 100%);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        
+        .waterfall-row {
+            background: linear-gradient(to right,
+                hsl(216 12% 8%) 0%,
+                hsl(167 70% 20%) 20%,
+                hsl(167 70% 41%) 40%,
+                hsl(45 93% 30%) 60%,
+                hsl(200 98% 30%) 80%,
+                hsl(216 12% 8%) 100%);
+            height: 2px;
+            margin-bottom: 1px;
+            opacity: 0.8;
+        }
+        
+        .frequency-display {
+            font-family: var(--font-mono);
+            letter-spacing: 0.1em;
+            text-shadow: 0 0 10px rgba(0, 212, 170, 0.3);
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .scanning-indicator {
+            background: linear-gradient(45deg, 
+                transparent 25%, 
+                rgba(0, 212, 170, 0.1) 25%, 
+                rgba(0, 212, 170, 0.1) 50%, 
+                transparent 50%, 
+                transparent 75%, 
+                rgba(0, 212, 170, 0.1) 75%);
+            background-size: 20px 20px;
+            animation: scanning 1s linear infinite;
+        }
+        
+        @keyframes scanning {
+            0% { background-position: 0 0; }
+            100% { background-position: 20px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- @COMPONENT: MainApp -->
+    <div class="min-h-screen bg-background text-foreground">
+        
+        <!-- Header with Current Frequency -->
+        <!-- @COMPONENT: FrequencyHeader -->
+        <div class="sticky top-0 z-50 bg-card border-b border-border">
+            <div class="px-4 py-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-3 h-3 bg-accent rounded-full pulse-animation"></div>
+                        <div>
+                            <div class="text-xs text-muted-foreground">Current</div>
+                            <div class="text-lg font-semibold frequency-display" data-bind="currentFreq">146.520</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button class="p-2 hover:bg-secondary rounded-lg transition-colors" data-event="click:toggleAudio">
+                            <i class="fas fa-volume-up text-accent"></i>
+                        </button>
+                        <button class="p-2 hover:bg-secondary rounded-lg transition-colors" data-event="click:showSettings">
+                            <i class="fas fa-cog text-muted-foreground"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: FrequencyHeader -->
+
+        <!-- Scanner Status -->
+        <!-- @COMPONENT: ScannerStatus -->
+        <div class="px-4 py-3 bg-secondary border-b border-border">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="scanning-indicator w-4 h-4 rounded border border-accent"></div>
+                    <span class="text-sm text-accent font-medium" data-bind="scanStatus">SCANNING</span>
+                    <span class="text-xs text-muted-foreground">Mode: AM</span>
+                </div>
+                <div class="text-xs text-muted-foreground">
+                    <span data-bind="signalStrength">-73</span> dBm
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: ScannerStatus -->
+
+        <!-- Signal Strength Visualization -->
+        <!-- @COMPONENT: SignalDisplay -->
+        <div class="px-4 py-4">
+            <div class="bg-card rounded-lg p-4 border border-border">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-medium">Signal Strength</h3>
+                    <span class="text-xs text-muted-foreground">Live</span>
+                </div>
+                
+                <!-- Signal Bars -->
+                <div class="flex items-end gap-1 h-20 mb-4" data-implementation="Real-time signal strength visualization">
+                    <!-- @MAP: signalBars.map(bar => ( -->
+                    <div class="signal-bar w-3" style="height: 65%"></div>
+                    <div class="signal-bar w-3" style="height: 45%"></div>
+                    <div class="signal-bar w-3" style="height: 80%"></div>
+                    <div class="signal-bar w-3" style="height: 35%"></div>
+                    <div class="signal-bar w-3" style="height: 90%"></div>
+                    <div class="signal-bar w-3" style="height: 55%"></div>
+                    <div class="signal-bar w-3" style="height: 70%"></div>
+                    <div class="signal-bar w-3" style="height: 25%"></div>
+                    <div class="signal-bar w-3" style="height: 85%"></div>
+                    <div class="signal-bar w-3" style="height: 40%"></div>
+                    <div class="signal-bar w-3" style="height: 60%"></div>
+                    <div class="signal-bar w-3" style="height: 95%"></div>
+                    <div class="signal-bar w-3" style="height: 30%"></div>
+                    <div class="signal-bar w-3" style="height: 75%"></div>
+                    <div class="signal-bar w-3" style="height: 50%"></div>
+                    <!-- @END_MAP )) -->
+                </div>
+                
+                <!-- Frequency Range -->
+                <div class="flex justify-between text-xs text-muted-foreground font-mono">
+                    <span>146.500</span>
+                    <span>146.540</span>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: SignalDisplay -->
+
+        <!-- Waterfall Display -->
+        <!-- @COMPONENT: WaterfallDisplay -->
+        <div class="px-4 pb-4">
+            <div class="bg-card rounded-lg p-4 border border-border">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-medium">Spectrum Waterfall</h3>
+                    <button class="text-xs text-accent hover:text-accent/80" data-event="click:toggleWaterfall">
+                        <i class="fas fa-pause mr-1"></i>Pause
+                    </button>
+                </div>
+                
+                <div class="h-24 overflow-hidden bg-background/50 rounded border border-border p-1">
+                    <!-- @FUNCTIONALITY: Waterfall display showing frequency spectrum over time -->
+                    <!-- @MAP: waterfallRows.map(row => ( -->
+                    <div class="waterfall-row"></div>
+                    <div class="waterfall-row"></div>
+                    <div class="waterfall-row"></div>
+                    <div class="waterfall-row"></div>
+                    <div class="waterfall-row"></div>
+                    <div class="waterfall-row"></div>
+                    <div class="waterfall-row"></div>
+                    <div class="waterfall-row"></div>
+                    <div class="waterfall-row"></div>
+                    <div class="waterfall-row"></div>
+                    <!-- @END_MAP )) -->
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: WaterfallDisplay -->
+
+        <!-- Frequency Presets -->
+        <!-- @COMPONENT: FrequencyPresets -->
+        <div class="px-4 pb-4">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-medium">Frequency Presets</h3>
+                <button class="text-xs text-accent hover:text-accent/80" data-event="click:showAllPresets">
+                    View All
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3">
+                <!-- @MAP: presets.map(preset => ( -->
+                <div class="bg-card rounded-lg p-3 border border-border hover:border-accent transition-colors cursor-pointer" data-event="click:selectPreset">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-accent font-medium">AVIATION</span>
+                        <i class="fas fa-plane text-xs text-muted-foreground"></i>
+                    </div>
+                    <div class="text-sm font-mono text-foreground">121.500</div>
+                    <div class="text-xs text-muted-foreground">Emergency</div>
+                </div>
+                
+                <div class="bg-card rounded-lg p-3 border border-border hover:border-accent transition-colors cursor-pointer" data-event="click:selectPreset">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-chart-4 font-medium">AMATEUR</span>
+                        <i class="fas fa-radio text-xs text-muted-foreground"></i>
+                    </div>
+                    <div class="text-sm font-mono text-foreground">146.520</div>
+                    <div class="text-xs text-muted-foreground">Repeater</div>
+                </div>
+                
+                <div class="bg-card rounded-lg p-3 border border-border hover:border-accent transition-colors cursor-pointer" data-event="click:selectPreset">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-destructive font-medium">EMERGENCY</span>
+                        <i class="fas fa-exclamation-triangle text-xs text-muted-foreground"></i>
+                    </div>
+                    <div class="text-sm font-mono text-foreground">154.265</div>
+                    <div class="text-xs text-muted-foreground">Fire Dept</div>
+                </div>
+                
+                <div class="bg-card rounded-lg p-3 border border-border hover:border-accent transition-colors cursor-pointer" data-event="click:selectPreset">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-primary font-medium">MARINE</span>
+                        <i class="fas fa-ship text-xs text-muted-foreground"></i>
+                    </div>
+                    <div class="text-sm font-mono text-foreground">156.800</div>
+                    <div class="text-xs text-muted-foreground">Channel 16</div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+        </div>
+        <!-- @END_COMPONENT: FrequencyPresets -->
+
+        <!-- Manual Tuning -->
+        <!-- @COMPONENT: ManualTuning -->
+        <div class="px-4 pb-4">
+            <div class="bg-card rounded-lg p-4 border border-border">
+                <h3 class="text-sm font-medium mb-3">Manual Tuning</h3>
+                
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-xs text-muted-foreground block mb-1">Frequency (MHz)</label>
+                        <div class="flex gap-2">
+                            <input type="number" 
+                                   value="146.520" 
+                                   step="0.001" 
+                                   min="0.1" 
+                                   max="1000"
+                                   class="flex-1 bg-input border border-border rounded px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-accent focus:border-transparent"
+                                   data-bind="manualFreq">
+                            <button class="px-4 py-2 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90 transition-colors" data-event="click:tuneToFreq">
+                                Tune
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="text-xs text-muted-foreground block mb-1">Modulation</label>
+                        <select class="w-full bg-input border border-border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-accent focus:border-transparent" data-bind="modulation">
+                            <option>AM</option>
+                            <option>FM</option>
+                            <option>USB</option>
+                            <option>LSB</option>
+                            <option>CW</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: ManualTuning -->
+
+        <!-- Audio Controls -->
+        <!-- @COMPONENT: AudioControls -->
+        <div class="px-4 pb-4">
+            <div class="bg-card rounded-lg p-4 border border-border">
+                <h3 class="text-sm font-medium mb-3">Audio Controls</h3>
+                
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm">Volume</span>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-volume-down text-xs text-muted-foreground"></i>
+                            <input type="range" min="0" max="100" value="75" class="w-24" data-bind="volume">
+                            <i class="fas fa-volume-up text-xs text-muted-foreground"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm">Squelch</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-muted-foreground">Low</span>
+                            <input type="range" min="0" max="100" value="40" class="w-24" data-bind="squelch">
+                            <span class="text-xs text-muted-foreground">High</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button class="flex-1 py-2 px-3 bg-destructive text-destructive-foreground rounded text-sm font-medium hover:bg-destructive/90 transition-colors" data-event="click:toggleRecording">
+                            <i class="fas fa-record-vinyl mr-1"></i>Record
+                        </button>
+                        <button class="flex-1 py-2 px-3 bg-secondary text-secondary-foreground rounded text-sm font-medium hover:bg-secondary/80 transition-colors" data-event="click:toggleMute">
+                            <i class="fas fa-volume-mute mr-1"></i>Mute
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: AudioControls -->
+
+        <!-- Bookmarks -->
+        <!-- @COMPONENT: BookmarksSection -->
+        <div class="px-4 pb-4">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-medium">Bookmarks</h3>
+                <button class="text-xs text-accent hover:text-accent/80" data-event="click:addBookmark">
+                    <i class="fas fa-plus mr-1"></i>Add
+                </button>
+            </div>
+            
+            <div class="space-y-2">
+                <!-- @MAP: bookmarks.map(bookmark => ( -->
+                <div class="bg-card rounded-lg p-3 border border-border flex items-center justify-between" data-mock="true">
+                    <div>
+                        <div class="text-sm font-mono text-foreground">146.520</div>
+                        <div class="text-xs text-muted-foreground">Local Repeater</div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="p-1 hover:bg-secondary rounded transition-colors" data-event="click:tuneToBookmark">
+                            <i class="fas fa-play text-xs text-accent"></i>
+                        </button>
+                        <button class="p-1 hover:bg-secondary rounded transition-colors" data-event="click:deleteBookmark">
+                            <i class="fas fa-trash text-xs text-muted-foreground"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-card rounded-lg p-3 border border-border flex items-center justify-between" data-mock="true">
+                    <div>
+                        <div class="text-sm font-mono text-foreground">121.500</div>
+                        <div class="text-xs text-muted-foreground">Aviation Emergency</div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="p-1 hover:bg-secondary rounded transition-colors" data-event="click:tuneToBookmark">
+                            <i class="fas fa-play text-xs text-accent"></i>
+                        </button>
+                        <button class="p-1 hover:bg-secondary rounded transition-colors" data-event="click:deleteBookmark">
+                            <i class="fas fa-trash text-xs text-muted-foreground"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+        </div>
+        <!-- @END_COMPONENT: BookmarksSection -->
+
+        <!-- Legal Notice -->
+        <!-- @COMPONENT: LegalNotice -->
+        <div class="px-4 pb-6">
+            <div class="bg-muted/30 rounded-lg p-4 border border-border">
+                <div class="flex items-start gap-3">
+                    <i class="fas fa-info-circle text-accent text-sm mt-0.5"></i>
+                    <div>
+                        <h4 class="text-sm font-medium text-accent mb-1">Legal Notice</h4>
+                        <p class="text-xs text-muted-foreground leading-relaxed">
+                            This app is for receive-only operation and educational purposes. 
+                            Transmitting requires proper licensing. Users must comply with local 
+                            radio regulations and respect privacy laws. Some frequencies may be 
+                            restricted for monitoring in your area.
+                        </p>
+                        <button class="text-xs text-accent hover:text-accent/80 mt-2" data-event="click:showLegalInfo">
+                            Learn More →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: LegalNotice -->
+
+        <!-- Bottom Navigation -->
+        <!-- @COMPONENT: BottomNavigation -->
+        <div class="fixed bottom-0 left-0 right-0 bg-card border-t border-border">
+            <div class="flex items-center justify-around py-3">
+                <button class="flex flex-col items-center gap-1 p-2 hover:bg-secondary rounded-lg transition-colors" data-event="click:toggleScan">
+                    <i class="fas fa-search text-accent"></i>
+                    <span class="text-xs text-accent">Scan</span>
+                </button>
+                <button class="flex flex-col items-center gap-1 p-2 hover:bg-secondary rounded-lg transition-colors" data-event="click:showPresets">
+                    <i class="fas fa-list text-muted-foreground"></i>
+                    <span class="text-xs text-muted-foreground">Presets</span>
+                </button>
+                <button class="flex flex-col items-center gap-1 p-2 hover:bg-secondary rounded-lg transition-colors" data-event="click:showBookmarks">
+                    <i class="fas fa-bookmark text-muted-foreground"></i>
+                    <span class="text-xs text-muted-foreground">Saved</span>
+                </button>
+                <button class="flex flex-col items-center gap-1 p-2 hover:bg-secondary rounded-lg transition-colors" data-event="click:showSettings">
+                    <i class="fas fa-cog text-muted-foreground"></i>
+                    <span class="text-xs text-muted-foreground">Settings</span>
+                </button>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: BottomNavigation -->
+
+        <!-- Add bottom padding to account for fixed navigation -->
+        <div class="h-20"></div>
+    </div>
+    <!-- @END_COMPONENT: MainApp -->
+
+    <script>
+        // TODO: Implement Telegram Mini App SDK integration
+        // TODO: Implement WebRTC for audio streaming simulation
+        // TODO: Add real-time signal processing and visualization
+        // TODO: Implement frequency database and preset management
+        // TODO: Add geolocation-based frequency suggestions
+        // TODO: Implement local storage for bookmarks and settings
+        
+        (function() {
+            // Simulated signal strength animation
+            function animateSignalBars() {
+                const bars = document.querySelectorAll('.signal-bar');
+                bars.forEach(bar => {
+                    const height = Math.random() * 100;
+                    bar.style.height = height + '%';
+                });
+            }
+            
+            // Simulate waterfall display
+            function addWaterfallRow() {
+                const waterfall = document.querySelector('.h-24.overflow-hidden');
+                if (waterfall) {
+                    const newRow = document.createElement('div');
+                    newRow.className = 'waterfall-row';
+                    waterfall.insertBefore(newRow, waterfall.firstChild);
+                    
+                    // Remove old rows to maintain display
+                    const rows = waterfall.querySelectorAll('.waterfall-row');
+                    if (rows.length > 12) {
+                        waterfall.removeChild(rows[rows.length - 1]);
+                    }
+                }
+            }
+            
+            // Initialize animations
+            setInterval(animateSignalBars, 500);
+            setInterval(addWaterfallRow, 200);
+            
+            // Basic event handlers for demonstration
+            document.addEventListener('click', function(e) {
+                const target = e.target.closest('[data-event]');
+                if (target) {
+                    const event = target.getAttribute('data-event');
+                    console.log('Event triggered:', event);
+                    
+                    // Basic visual feedback
+                    target.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        target.style.transform = '';
+                    }, 150);
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
